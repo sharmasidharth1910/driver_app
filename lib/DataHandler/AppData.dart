@@ -1,5 +1,5 @@
 import 'package:driver_app/Models/Address.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 class AppData extends ChangeNotifier {
   Address pickUpLocation;
