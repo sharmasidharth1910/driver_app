@@ -1,5 +1,6 @@
+import 'package:driver_app/Credentials/ConfigMaps.dart';
+import 'package:driver_app/Screens/CarInfoScreen.dart';
 import 'package:driver_app/Screens/LoginScreen.dart';
-import 'package:driver_app/Screens/MainScreen.dart';
 import 'package:driver_app/Widgets/ProgressDialog.dart';
 import 'package:driver_app/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,12 +44,13 @@ class RegistrationScreen extends StatelessWidget {
         "phone": phoneTextEditingController.text.trim(),
       };
 
-      usersRef.child(firebaseUser.uid).set(userDataMap);
+      driversRef.child(firebaseUser.uid).set(userDataMap);
+
+      currentfirebaseUser = firebaseUser;
 
       Fluttertoast.showToast(msg: "New user has been successfully created");
 
-      Navigator.pushNamedAndRemoveUntil(
-          context, MainScreen.screenId, (route) => false);
+      Navigator.pushNamed(context, CarInfoScreen.screenId);
     } else {
       Navigator.pop(context);
       Fluttertoast.showToast(
