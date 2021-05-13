@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:driver_app/Credentials/ConfigMaps.dart';
+import 'package:driver_app/main.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -39,6 +41,14 @@ class HomeTabPage extends StatelessWidget {
     // print("Result from getAddress : " + address);
   }
 
+  void makeDriverOnlineNow() {
+    Geofire.initialize("availableDrivers");
+    Geofire.setLocation(currentfirebaseUser.uid, currentPosition.latitude,
+        currentPosition.longitude);
+
+    rideRequestRef.onValue.listen((event) {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -74,7 +84,9 @@ class HomeTabPage extends StatelessWidget {
                     backgroundColor:
                         MaterialStateProperty.all<Color>(Colors.green),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    makeDriverOnlineNow();
+                  },
                   child: Container(
                     color: Colors.green,
                     child: Padding(
@@ -83,7 +95,7 @@ class HomeTabPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Online Now ",
+                            "Go Online ",
                             style: TextStyle(
                               fontSize: 20.0,
                               fontWeight: FontWeight.bold,
