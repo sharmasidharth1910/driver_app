@@ -4,20 +4,34 @@ import 'package:driver_app/Credentials/ConfigMaps.dart';
 import 'package:driver_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class HomeTabPage extends StatelessWidget {
-  Completer<GoogleMapController> _controllerGoogleMap = Completer();
-  GoogleMapController newGoogleMapController;
-
-  Position currentPosition;
-  var geoLocator = Geolocator();
-
+class HomeTabPage extends StatefulWidget {
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
+
+  @override
+  _HomeTabPageState createState() => _HomeTabPageState();
+}
+
+class _HomeTabPageState extends State<HomeTabPage> {
+  Completer<GoogleMapController> _controllerGoogleMap = Completer();
+
+  GoogleMapController newGoogleMapController;
+
+  String driverStatus = "Go Online   ";
+
+  Color driverStatusColor = Colors.green;
+
+  bool isDriverAvailable = false;
+
+  Position currentPosition;
+
+  var geoLocator = Geolocator();
 
   Future<void> locatePosition() async {
     Position position = await Geolocator.getCurrentPosition(
@@ -54,15 +68,24 @@ class HomeTabPage extends StatelessWidget {
     rideRequestRef.onValue.listen((event) {});
   }
 
+  void makeDriverOfflineNow() {
+    Geofire.removeLocation(currentfirebaseUser.uid);
+    rideRequestRef.onDisconnect();
+    rideRequestRef.remove();
+    rideRequestRef = null;
+  }
+
   void getLocationLiveUpdates() {
     homeTabPageStreamSubscription =
         Geolocator.getPositionStream().listen((Position position) {
       currentPosition = position;
-      Geofire.setLocation(
-        currentfirebaseUser.uid,
-        position.latitude,
-        position.longitude,
-      );
+      if (isDriverAvailable) {
+        Geofire.setLocation(
+          currentfirebaseUser.uid,
+          position.latitude,
+          position.longitude,
+        );
+      }
       LatLng latLng = LatLng(position.latitude, position.longitude);
       newGoogleMapController.animateCamera(CameraUpdate.newLatLng(latLng));
     });
@@ -76,7 +99,7 @@ class HomeTabPage extends StatelessWidget {
           mapType: MapType.normal,
           myLocationEnabled: true,
           myLocationButtonEnabled: true,
-          initialCameraPosition: _kGooglePlex,
+          initialCameraPosition: HomeTabPage._kGooglePlex,
           onMapCreated: (GoogleMapController controller) {
             _controllerGoogleMap.complete(controller);
             newGoogleMapController = controller;
@@ -101,21 +124,38 @@ class HomeTabPage extends StatelessWidget {
                 child: ElevatedButton(
                   style: ButtonStyle(
                     backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.green),
+                        MaterialStateProperty.all<Color>(driverStatusColor),
                   ),
                   onPressed: () {
-                    makeDriverOnlineNow();
-                    getLocationLiveUpdates();
+                    if (!isDriverAvailable) {
+                      makeDriverOnlineNow();
+                      getLocationLiveUpdates();
+                      setState(() {
+                        driverStatusColor = Colors.red;
+                        driverStatus = "Go Offline";
+                        isDriverAvailable = true;
+                      });
+                      Fluttertoast.showToast(msg: "You are Online now");
+                    } else {
+                      makeDriverOfflineNow();
+                      setState(() {
+                        driverStatus = "Go Online";
+                        driverStatusColor = Colors.green;
+                        isDriverAvailable = false;
+                      });
+
+                      Fluttertoast.showToast(msg: "You are Offline now");
+                    }
                   },
                   child: Container(
-                    color: Colors.green,
+                    color: driverStatusColor,
                     child: Padding(
                       padding: EdgeInsets.all(17.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Go Online ",
+                            driverStatus,
                             style: TextStyle(
                               fontSize: 20.0,
                               fontWeight: FontWeight.bold,
