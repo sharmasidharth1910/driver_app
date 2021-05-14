@@ -1,3 +1,4 @@
+import 'package:driver_app/Credentials/ConfigMaps.dart';
 import 'package:driver_app/Screens/MainScreen.dart';
 import 'package:driver_app/Screens/RegisterScreen.dart';
 import 'package:driver_app/Widgets/ProgressDialog.dart';
@@ -34,8 +35,9 @@ class LoginScreen extends StatelessWidget {
         .user;
 
     if (firebaseUser != null) {
-      usersRef.child(firebaseUser.uid).once().then((DataSnapshot snap) {
+      driversRef.child(firebaseUser.uid).once().then((DataSnapshot snap) {
         if (snap.value != null) {
+          currentfirebaseUser = firebaseUser;
           Navigator.pushNamedAndRemoveUntil(
               context, MainScreen.screenId, (route) => false);
           Fluttertoast.showToast(msg: "Logged in successfully.");
